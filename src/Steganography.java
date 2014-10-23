@@ -23,7 +23,7 @@ public class Steganography {
 	public Steganography(BufferedImage img) {
 		this.in = img;
 		this.out = new BufferedImage(img.getWidth(), img.getHeight(),
-				BufferedImage.TYPE_3BYTE_BGR);
+				BufferedImage.TYPE_INT_RGB);
 	}
 
 	public void addZeroByte() {
@@ -248,6 +248,7 @@ public class Steganography {
 				}
 			} else {
 				int col = (red << 16) | (green << 8) | blue;
+				System.out.println(col + "  " + this.in.getRGB(imageCol, imageRow) + "  " + imageRow + imageCol) ;
 				this.out.setRGB(imageCol, imageRow, col);
 				if (imageRow == this.in.getHeight()
 						&& imageCol == this.in.getWidth() - 3) {
