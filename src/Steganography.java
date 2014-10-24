@@ -3,6 +3,7 @@ import java.awt.image.BufferedImage;
 import java.io.File;
 import java.io.FileNotFoundException;
 import java.io.IOException;
+import java.io.PrintWriter;
 import java.util.Scanner;
 
 import javax.imageio.ImageIO;
@@ -18,7 +19,9 @@ public class Steganography {
 	int r = 0;
 	int b = 0;
 	int g = 0;
+	int a = 0;
 	boolean tooFull = false;
+	static String build = "";
 
 	public Steganography(BufferedImage img) {
 		this.in = img;
@@ -28,18 +31,20 @@ public class Steganography {
 
 	public void addZeroByte() {
 		if (startAt == 1) {
+			System.out.println("hello");
 			for (int i = 0; i < 2; i++) {
 				Color c = new Color(this.in.getRGB(imageCol, imageRow));
 				int red = c.getRed();
 				int green = c.getGreen();
 				int blue = c.getBlue();
 				if (red % 2 != 0)
-					red += 1;
+					red -= 1;
 				if (green % 2 != 0)
 					green += 1;
 				if (blue % 2 != 0)
 					blue += 1;
-				int col = (red << 16) | (green << 8) | blue;
+				int col = (c.getAlpha() << 24) | (red << 16) | (green << 8)
+						| blue;
 				this.out.setRGB(imageCol, imageRow, col);
 
 				if (imageCol == this.in.getWidth()) {
@@ -49,16 +54,17 @@ public class Steganography {
 					imageCol++;
 			}
 			Color c = new Color(this.in.getRGB(imageCol, imageRow));
-			int red = c.getRed();
-			int green = c.getGreen();
-			if (red % 2 != 0)
-				r += 1;
-			if (green % 2 != 0)
+			int r = c.getRed();
+			int g = c.getGreen();
+			if (r % 2 != 0)
+				r -= 1;
+			if (g % 2 != 0)
 				g += 1;
 
 			startAt = 3;
 
 		} else if (startAt == 2) {
+			
 			if (imageRow == this.in.getHeight()
 					&& imageCol == this.in.getWidth() - 2) {
 				this.tooFull = true;
@@ -70,7 +76,7 @@ public class Steganography {
 				gree += 1;
 			if (blu % 2 != 0)
 				blu += 1;
-			int col = (r << 16) | (gree << 8) | blu;
+			int col = (c.getAlpha() << 24) | (r << 16) | (gree << 8) | blu;
 			this.out.setRGB(imageCol, imageRow, col);
 			if (imageCol == this.in.getWidth()) {
 				imageCol = 0;
@@ -88,7 +94,8 @@ public class Steganography {
 					green += 1;
 				if (blue % 2 != 0)
 					blue += 1;
-				int co = (red << 16) | (green << 8) | blue;
+				int co = (d.getAlpha() << 24) | (red << 16) | (green << 8)
+						| blue;
 				this.out.setRGB(imageCol, imageRow, co);
 
 				if (imageCol == this.in.getWidth()) {
@@ -99,11 +106,13 @@ public class Steganography {
 			}
 			startAt = 1;
 		} else if (startAt == 3) {
+			
 			Color d = new Color(this.in.getRGB(imageCol, imageRow));
 			int blu = d.getBlue();
 			if (blu % 2 != 0)
 				blu += 1;
-			int co = (r << 16) | (g << 8) | blu;
+			int co = (d.getAlpha() << 24) | (d.getRed() << 16)
+					| (d.getGreen() << 8) | blu;
 			this.out.setRGB(imageCol, imageRow, co);
 
 			if (imageCol == this.in.getWidth()) {
@@ -112,6 +121,7 @@ public class Steganography {
 			} else
 				imageCol++;
 			for (int i = 0; i < 2; i++) {
+
 				Color c = new Color(this.in.getRGB(imageCol, imageRow));
 				int red = c.getRed();
 				int green = c.getGreen();
@@ -122,7 +132,8 @@ public class Steganography {
 					green += 1;
 				if (blue % 2 != 0)
 					blue += 1;
-				int col = (red << 16) | (green << 8) | blue;
+				int col = (c.getAlpha() << 24) | (red << 16) | (green << 8)
+						| blue;
 				this.out.setRGB(imageCol, imageRow, col);
 
 				if (imageCol == this.in.getWidth()) {
@@ -142,40 +153,48 @@ public class Steganography {
 
 	public void fillOut() {
 		if (startAt == 1) {
+			
+			int hold = imageCol;
 			for (; imageRow < this.in.getHeight(); imageRow++) {
 				for (; imageCol < this.in.getWidth(); imageCol++) {
 					this.out.setRGB(imageCol, imageRow,
 							this.in.getRGB(imageCol, imageRow));
 				}
+				imageCol = 0;
 			}
 		} else if (startAt == 2) {
+			
 			Color c = new Color(this.in.getRGB(imageCol, imageRow));
 			int green = c.getGreen();
 			int blue = c.getBlue();
-			int col = (r << 16) | (green << 8) | blue;
+			int col = (c.getAlpha() << 24) | (r << 16) | (green << 8) | blue;
 			this.out.setRGB(imageCol, imageRow, col);
 			if (this.in.getHeight() == imageRow
 					&& this.in.getWidth() == imageCol) {
 
 			} else {
+
 				if (imageCol == this.in.getWidth()) {
 					imageCol = 0;
 					imageRow++;
 				} else
 					imageCol++;
+				int hold = imageCol;
 				for (; imageRow < this.in.getHeight(); imageRow++) {
 					for (; imageCol < this.in.getWidth(); imageCol++) {
 						this.out.setRGB(imageCol, imageRow,
 								this.in.getRGB(imageCol, imageRow));
 					}
+					imageCol = 0;
 				}
 			}
-		}
-		else if(startAt == 3){
+		} else if (startAt == 3) {
+			System.out.println("hello   " + imageRow + "   " + imageCol);
 			Color c = new Color(this.in.getRGB(imageCol, imageRow));
 			
 			int blue = c.getBlue();
-			int col = (r << 16) | (g << 8) | blue;
+			int col = (c.getAlpha() << 24) | (r << 16)
+					| (g << 8) | blue;
 			this.out.setRGB(imageCol, imageRow, col);
 			if (this.in.getHeight() == imageRow
 					&& this.in.getWidth() == imageCol) {
@@ -184,13 +203,21 @@ public class Steganography {
 				if (imageCol == this.in.getWidth()) {
 					imageCol = 0;
 					imageRow++;
-				} else
+				} else {
+					
 					imageCol++;
+				}
+
+				int hold = imageCol;
+				System.out.println(imageRow + "  " + imageCol);
 				for (; imageRow < this.in.getHeight(); imageRow++) {
 					for (; imageCol < this.in.getWidth(); imageCol++) {
+						//System.out.println(imageRow + "   " + imageCol);
 						this.out.setRGB(imageCol, imageRow,
 								this.in.getRGB(imageCol, imageRow));
+						
 					}
+					imageCol = 0;
 				}
 			}
 		}
@@ -207,20 +234,23 @@ public class Steganography {
 		}
 
 		if (startAt == 1) {
+
 			Color c = new Color(this.in.getRGB(imageCol, imageRow));
+			int alpha = c.getAlpha();
 			int red = c.getRed();
 			int green = c.getGreen();
 			int blue = c.getBlue();
-			System.out.println(red + "  " + green + "  " + blue);
-			if ((Integer.valueOf(three.substring(0, 1)) % 2) != (red % 2)){
-				if(red < 255)
+			
+			if ((Integer.valueOf(three.substring(0, 1)) % 2) != (red % 2)) {
+				if (red < 255)
 					red += 1;
 				else
 					red -= 1;
 			}
-				
-			if ((Integer.valueOf(three.substring(1, 2)) % 2) != (green % 2) && !stop2){
-				if(green < 255)
+
+			if ((Integer.valueOf(three.substring(1, 2)) % 2) != (green % 2)
+					&& !stop2) {
+				if (green < 255)
 					green += 1;
 				else
 					green -= 1;
@@ -228,14 +258,16 @@ public class Steganography {
 			if ((Integer.valueOf(three.substring(2, 3)) % 2) != (blue % 2)
 					&& !stop3)
 				blue += 1;
-			System.out.println(red + "  " + green + "  " + blue);
+			
 			if (stop3) {
+				a = alpha;
 				r = red;
 				if (!stop2) {
 					startAt = 3;
 					g = green;
 					if (imageRow == this.in.getHeight()
 							&& imageCol == this.in.getWidth() - 3) {
+
 						return false;
 					}
 				} else {
@@ -247,9 +279,15 @@ public class Steganography {
 
 				}
 			} else {
-				int col = (red << 16) | (green << 8) | blue;
-				System.out.println(col + "  " + this.in.getRGB(imageCol, imageRow) + "  " + imageRow + imageCol) ;
+			
+				int col = (c.getAlpha() << 24) | (red << 16) | (green << 8)
+						| blue;
+				int col2 = (c.getAlpha() << 24) | (c.getRed() << 16) | (c.getGreen() << 8)
+						| c.getBlue();
+			
 				this.out.setRGB(imageCol, imageRow, col);
+		
+				
 				if (imageRow == this.in.getHeight()
 						&& imageCol == this.in.getWidth() - 3) {
 					imageCol++;
@@ -265,6 +303,7 @@ public class Steganography {
 
 			}
 		} else if (startAt == 2) {
+
 			Color c = new Color(this.in.getRGB(imageCol, imageRow));
 			int green = c.getGreen();
 			int blue = c.getBlue();
@@ -274,8 +313,10 @@ public class Steganography {
 			if ((Integer.valueOf(three.substring(1, 2)) % 2) != (blue % 2))
 				blue += 1;
 			if (stop3) {
+
 				g = green;
 				if (!stop2) {
+
 					b = blue;
 					startAt = 1;
 
@@ -291,7 +332,9 @@ public class Steganography {
 			}
 
 			else {
-				int col = (r << 16) | (green << 8) | blue;
+
+				int col = (c.getAlpha() << 24) | (r << 16) | (green << 8)
+						| blue;
 				this.out.setRGB(imageCol, imageRow, col);
 
 				if (imageCol == this.in.getWidth()) {
@@ -313,12 +356,13 @@ public class Steganography {
 		}
 
 		else if (startAt == 3) {
+
 			Color c = new Color(this.in.getRGB(imageCol, imageRow));
 			int blue = c.getBlue();
 			if ((Integer.valueOf(three.substring(0, 1)) % 2) != (blue % 2))
 				blue += 1;
 
-			int col = (r << 16) | (g << 8) | blue;
+			int col = (c.getAlpha() << 24) | (r << 16) | (g << 8) | blue;
 			this.out.setRGB(imageCol, imageRow, col);
 			if (imageRow == this.in.getHeight()
 					&& imageCol == this.in.getWidth() - 3 && stop2) {
@@ -372,9 +416,9 @@ public class Steganography {
 			binary += "5";
 			fillCount = 1;
 		}
-		System.out.println(binary + "  " + binary.length());
-		while (i < 1){//binary.length()) {
-			
+	
+		while (i < binary.length()) {
+
 			pad = transitionToNew(binary.substring(i, i + 3));
 			System.out.println(binary.substring(i, i + 3));
 			i += 3;
@@ -388,33 +432,104 @@ public class Steganography {
 	}
 
 	public static void main(String[] args) throws IOException {
-		String fileName = "test";
+		
+			String[] imageName = args[1].split("\\.");
+			System.out.println(imageName[0]);
+			if(args[1].contains(".")){
+				System.out.println("kjfdk");
+			}
+		String fileName = args[2];
+		String ext = imageName[1];
+		System.out.println(ext);
+		String imageF = imageName[0];
+		String eOrD = args[0];
+		String outName = fileName+"-out";
 		boolean check = true;
 		BufferedImage img = null;
 		File test = new File(fileName);
 		Scanner sc = new Scanner(test);
-
+		PrintWriter outWriter = new PrintWriter(outName, "UTF-8");
 		try {
-			img = ImageIO.read(new File("inputImage.bmp"));
+			img = ImageIO.read(new File(args[1]));
+			// img = ImageIO.read(new File("inputImage.bmp"));
 		} catch (IOException e) {
 
 		}
 		Steganography ours = new Steganography(img);
-
-		while (sc.hasNextLine()) {
+		if(eOrD.equals("-D")){
+		  while (build != "00000000") {
+			  Color c = new Color(img.getRGB(imageCol,imageRow)); 
+			  int red = c.getRed(); 
+			  int green = c.getGreen();
+			  int blue = c.getBlue();
+			  if(red % 2 == 0){ 
+				  build += "0";
+				  }
+			  else
+				  build += "1"; 
+			  if(build.length() == 8){
+			  System.out.println("hey " + build);
+				  if(build.equals("00000000"))
+					  break;
+				  int x = Integer.parseInt(build, 2);
+				  build="";
+		  outWriter.print((char)x); 
+		  }
+			  if(green % 2 == 0){
+				  build += "0";
+				  }
+			  else
+		  build += "1";
+			  if(build.length() == 8){
+			  System.out.println("hey " + build);
+			  if(build.equals("00000000"))
+					  break;
+		  int x = Integer.parseInt(build, 2); 
+		  build="";
+		  outWriter.print((char)x);
+		  }
+		  
+		  if(blue % 2 == 0){
+			  build += "0";
+			  }
+		  else build += "1";
+		  if(build.length() == 8){ 
+		  System.out.println("hey " + build);
+		  if(build.equals("00000000"))
+				  break;
+			  int x = Integer.parseInt(build, 2);
+			  build="";
+			  outWriter.print((char)x);
+			  }
+		  if(imageCol == img.getWidth() -1){
+			  imageCol = 0;
+			  imageRow++;
+			  }
+		  else
+		  imageCol++;
+		  
+		  System.out.println(build);
+		
+		  }
+		  outWriter.close();
+		 
+		}
+		else if(eOrD.equals("-E")){
+			while (sc.hasNextLine()) {
+		
 			String line = sc.nextLine();
-			
-			byte[] bytes = line.getBytes();
-			StringBuilder binary = new StringBuilder();
-			for (byte b : bytes) {
-				int val = b;
-				for (int i = 0; i < 8; i++) {
-					binary.append((val & 128) == 0 ? 0 : 1);
-					val <<= 1;
-				}
-				// binary.append(' ');
+		
+
+		byte[] bytes = line.getBytes();
+		StringBuilder binary = new StringBuilder();
+		for (byte b : bytes) {
+			int val = b;
+			for (int i = 0; i < 8; i++) {
+				binary.append((val & 128) == 0 ? 0 : 1);
+				val <<= 1;
 			}
-			
+			// binary.append(' '); }
+		}
 			check = ours.imbedMess(binary.toString(), false);
 			if (!check) {
 
@@ -425,19 +540,52 @@ public class Steganography {
 		}
 		sc.close();
 		if (!ours.tooFull) {
+
 			ours.addZeroByte();
 			if (!ours.tooFull) {
 				ours.fillOut();
 			}
-			
-		}
-		File f = new File("outputImage.bmp");
-		ImageIO.write(ours.out, "BMP", f);
 
+		}
+
+		int gay = 0;
+		 /* for(int i = 0; i < ours.in.getHeight(); i++){ for(int k = 0; k <
+		 * ours.in.getWidth(); k++){ Color c = new Color(ours.in.getRGB(k,i));
+		 * int red = c.getRed() -10; int blue = c.getBlue()-10; int green =
+		 * c.getGreen()-30; int alpha = c.getAlpha()-30; int col = (alpha << 24)
+		 * |(red << 16) | (green << 8) | blue; ours.out.setRGB(k, i, col); } }
+		 */
+		
+		File f = new File(imageF + "-steg." + ext);
+		ImageIO.write(ours.out, ext.toUpperCase(), f);
+		}
+		 Color r = new Color(ours.out.getRGB(8, 0)); 
+		 Color s = new Color(ours.out.getRGB(9, 0)); 
+		 Color t = new Color(ours.out.getRGB(10, 0));
+       
+		 int r1 = r.getRed();
+		 int r2 = s.getRed();
+		 int r3 = t.getRed(); 
+		 int g1 = r.getGreen();
+		 int g2 = s.getGreen();
+		 int g3 = t.getGreen(); 
+		 int b1 = r.getBlue();
+		 int b2 = s.getBlue();
+		 System.out.println("arf  " + r1 + " " + r2 + " " + r3 + " "+ g1 + " "+ g2 + " " + g3 + " "
+				 + b1 + " " + b2);
+		 
 		String x = "jfj%%";
-		Color c = new Color(ours.in.getRGB(222,43));
-		Color d = new Color(ours.out.getRGB(222,43));
-		System.out.println(d.getBlue() + "  " + c.getBlue());
+		Color c = new Color(ours.in.getRGB(0, 0));
+		int red = c.getRed() - 1;
+		int blue = c.getBlue() + 1;
+		int green = c.getGreen();
+		int rgb = red;
+		int alpha = c.getAlpha();
+		System.out.println(alpha + "  " + red + "  " + green + " " + blue);
+		rgb = (rgb << 8) + green;
+		rgb = (rgb << 8) + blue;
+		int col = (alpha << 24) | (red << 16) | (green << 8) | blue;
+		System.out.println(ours.in.getRGB(0, 100) + "  " + ours.out.getRGB(0, 100));
 
 		// System.out.println("'" + s + "' to binary: " + binary);
 	}
